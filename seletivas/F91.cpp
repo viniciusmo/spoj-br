@@ -1,5 +1,5 @@
 /* 
-   Exercicio http://br.spoj.pl/submit/F91/
+   Exercicio http://br.spoj.pl/problems/F91/
    by Vinicius Moises de Oliveira - FATEC - Carapicuiba
    vinicius.moises.oliveira@gmail.com
    
