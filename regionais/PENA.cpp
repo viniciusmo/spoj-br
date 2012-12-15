@@ -23,14 +23,12 @@ class Task{
    int start_time_minute;
    int finish_time_minute;
 
-   
+  
 };
 
 map < string , vector < Task * > > tasks;
 char DAYS_OF_WEEK [][5] = {"Seg", "Ter", "Qua" , "Qui", "Sex"};
 int TOTAL_DAYS_OF_WEEK = 5;
-int memorization_result[10000];
-
 
 int convert_time_day_to_int (char  time_of_day [] ){
 	 char  copy_time_of_day [100];
@@ -52,52 +50,49 @@ void init_tasks_with_days_of_week(){
 	}
 }
 
-void init_memorization_result(){
-   for (int i = 0; i < 10000+1;i++){
-       memorization_result[i] = -1;
-   }
-}
 
 int compare (Task * t1 , Task * t2){
    return t1->finish_time_minute < t2->finish_time_minute;	
 }
 
-int find_largest_index_smaller_by(vector<Task*> tasks , Task * task , int index_task){
 
-	for (int i = index_task ; i >=0 ; i--){
-		Task * atual_task =  tasks[i];
-		if (atual_task->finish_time_minute <= task->start_time_minute){
-
-		    return i;
-		}	
-	}
-    return -1;
-}
-
-
-
-int maximum_points_tasks (vector<Task *> tasks , int j){
-    
-    if (j == -1 ){
-		return 0;
-	} else{
-	    int pj = find_largest_index_smaller_by (tasks,tasks[j],j);
-		return max(tasks[j]->point + maximum_points_tasks(tasks,pj),maximum_points_tasks(tasks,j-1));
-	}
-}
-
-int maximum_points_tasks_faster (vector<Task *> tasks , int j){
+int  search_bin (vector<Task*> tasks, Task * task , int index) {
    
-    if (j == -1){
-       return 0;
-    }else if (memorization_result[j] != -1){
-   	   return memorization_result[j];
-    }else {
-       int pj = find_largest_index_smaller_by (tasks,tasks[j],j);
-       memorization_result[j] = max(tasks[j]->point + maximum_points_tasks_faster(tasks,pj),maximum_points_tasks_faster(tasks,j-1));
-       return memorization_result[j];
-    }
+   int inf = 0;
+   int sup = index-1;
+   int m;
+   int ret = -1;
+   while (inf <= sup){
+   		m = (inf + sup) / 2;
+   		Task * atual = tasks[m];
+   		Task * next  = tasks[m+1];
+   		
+   		if (atual->finish_time_minute <= task->start_time_minute && next->finish_time_minute > task->start_time_minute){
+   			return m;
+   		} 
+   		if (atual->finish_time_minute <= task->start_time_minute){
+   		    ret = m;
+   		    inf = m + 1;
+   		}else{
+   			sup = m -1;
+   		}
+   }
+  
+   return ret;
+}
 
+
+int maximum_points_tasks_faster (vector<Task *> tasks){
+
+    int memorization_result[tasks.size()];
+    fill_n(memorization_result, tasks.size(), 0);
+    
+    for (int  j = 0; j < tasks.size() ; j++){
+         int pj =  search_bin (tasks,tasks[j],j);
+         memorization_result[j] = max(tasks[j]->point + memorization_result[pj], memorization_result[j-1]);
+    }
+   
+   return  memorization_result[tasks.size()-1];
 }
 
 
@@ -112,7 +107,6 @@ int main (){
 		 scanf ("%d",&n);
 		 if (n == 0) break;
 		 init_tasks_with_days_of_week();
-		 init_memorization_result();
 		 for (int i = 0; i < n; i++){
 		 	 char start_time_read[100];
 		 	 char finish_time_read[100];
@@ -128,12 +122,13 @@ int main (){
              tasks[str].push_back(t);
 		 }
 		 for (int i = 0; i < TOTAL_DAYS_OF_WEEK; i++){
+		 
 		 	  string key(DAYS_OF_WEEK[i]);
 		 	  vector<Task*> vec = tasks[key];
 		 	  sort (vec.begin(),vec.end(),compare);
-		 	  result[i] = maximum_points_tasks_faster(vec,vec.size()-1);	
+		 	  result[i] = maximum_points_tasks_faster(vec);	
 		 	  total += result[i];	 	
-		 	  init_memorization_result();
+				
 		 }
 		 printf ("Total de pontos: %d\n",total);
 		 for (int i = 0;  i < TOTAL_DAYS_OF_WEEK;i++){
